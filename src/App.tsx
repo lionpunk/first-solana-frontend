@@ -10,7 +10,12 @@ import {
   WalletMultiButton,
 } from "@solana/wallet-adapter-react-ui";
 import { PhantomWalletAdapter } from "@solana/wallet-adapter-wallets";
-import { Commitment, Connection, PublicKey } from "@solana/web3.js";
+import {
+  clusterApiUrl,
+  Commitment,
+  Connection,
+  PublicKey,
+} from "@solana/web3.js";
 import React, { useState } from "react";
 import "./App.css";
 import idl from "./idl.json";
@@ -30,7 +35,7 @@ function App() {
   const [input, setInput] = useState<string>("");
 
   async function getProvider() {
-    const network = "http:127.0.0.1:8899";
+    const network = clusterApiUrl("devnet");
     const connection = new Connection(network, opts);
     const confirmOption: web3.ConfirmOptions = {
       commitment: "processed",
@@ -120,13 +125,16 @@ function App() {
   );
 }
 
-const AppWithProvider = (): JSX.Element => (
-  <ConnectionProvider endpoint="http://127.0.0.1:8899">
-    <WalletProvider wallets={wallets} autoConnect>
-      <WalletModalProvider>
-        <App />
-      </WalletModalProvider>
-    </WalletProvider>
-  </ConnectionProvider>
-);
+const AppWithProvider = (): JSX.Element => {
+  const network = clusterApiUrl("devnet");
+  return (
+    <ConnectionProvider endpoint={network}>
+      <WalletProvider wallets={wallets} autoConnect>
+        <WalletModalProvider>
+          <App />
+        </WalletModalProvider>
+      </WalletProvider>
+    </ConnectionProvider>
+  );
+};
 export default AppWithProvider;
