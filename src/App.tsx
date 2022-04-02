@@ -26,6 +26,8 @@ const programID = new PublicKey(idl.metadata.address);
 function App() {
   const wallet = useAnchorWallet();
   const [value, setValue] = useState(null);
+  const [dataList, setDataList] = useState<string[]>([]);
+  const [input, setInput] = useState<string>("");
 
   async function getProvider() {
     const network = "http:127.0.0.1:8899";
@@ -38,14 +40,14 @@ function App() {
     return provider;
   }
 
-  async function createCounter() {
+  async function initialize() {
     const provider = await getProvider();
     const program = new Program(idl as Idl, programID, provider);
     console.log("provid==>", provider);
 
     try {
       if (provider) {
-        await program.rpc.create({
+        await program.rpc.initialize("Hello World", {
           accounts: {
             baseAccount: baseAccount.publicKey,
             user: provider.wallet.publicKey,
@@ -58,16 +60,17 @@ function App() {
         baseAccount.publicKey
       );
       console.log("account:", account);
-      setValue(account.count.toString());
+      setValue(account.data.toString());
+      setDataList(account.dataList);
     } catch (err) {
       console.log("Transaction error:", err);
     }
   }
 
-  async function increment() {
+  async function update() {
     const provider = await getProvider();
     const program = new Program(idl as Idl, programID, provider);
-    await program.rpc.increment({
+    await program.rpc.update(input, {
       accounts: {
         baseAccount: baseAccount.publicKey,
       },
@@ -77,7 +80,9 @@ function App() {
       baseAccount.publicKey
     );
     console.log("account:", account);
-    setValue(account.count.toString());
+    setValue(account.data.toString());
+    setDataList(account.dataList);
+    setInput("");
   }
 
   console.log("wallet ==>", wallet);
@@ -92,16 +97,24 @@ function App() {
   return (
     <div className="App">
       <div>
-        {!value ? (
-          <button onClick={createCounter}>Create counter</button>
+        {!value && <button onClick={initialize}>Initialize</button>}
+        {value ? (
+          <div>
+            <h2>Current value: {value}</h2>
+            <input
+              type="text"
+              placeholder="Add new data"
+              onChange={(e) => setInput(e.target.value)}
+              value={input}
+            />
+            <button onClick={update}>Add data</button>
+          </div>
         ) : (
-          <button onClick={increment}>Increment counter</button>
+          <h3>Please Initialize.</h3>
         )}
-        {value && value >= Number(0) ? (
-          <h2>{value}</h2>
-        ) : (
-          <h3>Please create the counter.</h3>
-        )}
+        {dataList.map((data, index) => (
+          <h4 key={index}>{data}</h4>
+        ))}
       </div>
     </div>
   );
